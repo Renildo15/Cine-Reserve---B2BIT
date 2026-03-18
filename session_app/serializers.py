@@ -6,12 +6,13 @@ from .models import Session, Ticket
 
 
 class SessionSerializer(serializers.ModelSerializer):
-    movie_name = serializers.CharField(source="movie.title")
-    room_name = serializers.CharField(source="room.name")
+    movie_name = serializers.CharField(source="movie.title", read_only=True)
+    room_name = serializers.CharField(source="room.name", read_only=True)
 
     class Meta:
         model = Session
         fields = ["id", "movie_name", "room_name", "start_time"]
+        read_only_fields = ["id", "movie_name", "room_name"]
 
 
 class SeatMapSerializer(serializers.ModelSerializer):
@@ -22,8 +23,8 @@ class SeatMapSerializer(serializers.ModelSerializer):
         fields = ["row", "number", "status"]
 
     def get_status(self, obj):
-        ticket_seat_ids = self.context["ticket_seat_ids"]
-        locked_seat_ids = self.context["locked_seat_ids"]
+        ticket_seat_ids = self.context.get("ticket_seat_ids", set())
+        locked_seat_ids = self.context.get("locked_seat_ids", set())
 
         if obj.id in ticket_seat_ids:
             return "purchased"
@@ -33,18 +34,34 @@ class SeatMapSerializer(serializers.ModelSerializer):
 
 
 class ReserveSeatSerializer(serializers.Serializer):
-    seat_id = serializers.IntegerField()
+    seat_id = serializers.IntegerField(
+        min_value=1,
+        help_text="ID of the seat to reserve"
+    )
+
+    def validate_seat_id(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Invalid seat ID")
+        return value
 
 
 class CheckoutSerializer(serializers.Serializer):
-    seat_id = serializers.IntegerField()
+    seat_id = serializers.IntegerField(
+        min_value=1,
+        help_text="ID of the seat to purchase"
+    )
+
+    def validate_seat_id(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Invalid seat ID")
+        return value
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    movie = serializers.CharField(source="session.movie.title")
-    start_time = serializers.DateTimeField(source="session.start_time")
-    room = serializers.CharField(source="session.room.name")
-    seat = serializers.SerializerMethodField()
+    movie = serializers.CharField(source="session.movie.title", read_only=True)
+    start_time = serializers.DateTimeField(source="session.start_time", read_only=True)
+    room = serializers.CharField(source="session.room.name", read_only=True)
+    seat = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Ticket

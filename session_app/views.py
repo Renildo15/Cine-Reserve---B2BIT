@@ -7,21 +7,27 @@ from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from helpers.get_lock_key import get_lock_key
 from room_app.models import Seat
 
 from .models import Session, Ticket
 from .serializers import *
+from .throttling import LoginRateThrottle, ReserveSeatThrottle
 
 
-@extend_schema(
-    request=SessionSerializer,
-    description="List movies",
-)
 class SessionsListView(generics.ListAPIView):
     serializer_class = SessionSerializer
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+
+    @extend_schema(
+        request=SessionSerializer,
+        description="List sessions for a movie",
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         movie_id = self.kwargs.get("movie_id")
@@ -32,13 +38,17 @@ class SessionsListView(generics.ListAPIView):
         )
 
 
-@extend_schema(
-    request=SeatMapSerializer,
-    description="List Seat Map",
-)
 class SessionSeatMapView(generics.ListAPIView):
     serializer_class = SeatMapSerializer
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+
+    @extend_schema(
+        request=SeatMapSerializer,
+        description="Get seat map for a session",
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         session_id = self.kwargs["session_id"]
@@ -71,13 +81,17 @@ class SessionSeatMapView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-@extend_schema(
-    request=ReserveSeatSerializer,
-    description="Reserve Seat",
-)
 class ReserveSeatView(generics.CreateAPIView):
     serializer_class = ReserveSeatSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ReserveSeatThrottle, UserRateThrottle]
+
+    @extend_schema(
+        request=ReserveSeatSerializer,
+        description="Reserve a seat for a session",
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         session_id = self.kwargs["session_id"]
@@ -105,13 +119,17 @@ class ReserveSeatView(generics.CreateAPIView):
         return Response({"message": "Seat reserved successfully", "expires_in": 600})
 
 
-@extend_schema(
-    request=CheckoutSerializer,
-    description="Checkout",
-)
 class CheckoutView(generics.CreateAPIView):
     serializer_class = CheckoutSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [UserRateThrottle]
+
+    @extend_schema(
+        request=CheckoutSerializer,
+        description="Purchase a ticket",
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         session_id = self.kwargs["session_id"]
