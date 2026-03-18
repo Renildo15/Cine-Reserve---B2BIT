@@ -57,7 +57,9 @@ class UserRegisterSerializerTest(TestCase):
 
 class UserSerializerTest(TestCase):
     def test_contains_expected_fields(self):
-        user = User.objects.create_user(username="testuser", email="test@example.com", password="pass123")
+        user = User.objects.create_user(
+            username="testuser", email="test@example.com", password="pass123"
+        )
         serializer = UserSerializer(user)
         self.assertEqual(set(serializer.data.keys()), {"id", "username", "email"})
 
@@ -69,7 +71,9 @@ class UserSerializerTest(TestCase):
 
 class MyTokenObtainPairSerializerTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
 
     def test_serializer_has_get_token_method(self):
         serializer = MyTokenObtainPairSerializer()
@@ -121,7 +125,9 @@ class UserRegisterViewTest(APITestCase):
 
 class MyTokenObtainPairViewTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
 
     def test_login_success(self):
         url = reverse("token_obtain_pair")

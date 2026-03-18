@@ -1,4 +1,5 @@
 import re
+
 from rest_framework import serializers
 
 from movie_app.models import Movie
@@ -26,15 +27,21 @@ class MovieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ["id", "title", "description", "duration", "rating", "is_available", "created_at"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "duration",
+            "rating",
+            "is_available",
+            "created_at",
+        ]
         read_only_fields = ["id", "created_at"]
 
     def validate_title(self, value):
         sanitized = value.strip()
         if not re.match(r'^[\w\s\-.,!?\'"():;&]+$', sanitized):
-            raise serializers.ValidationError(
-                "Title contains invalid characters."
-            )
+            raise serializers.ValidationError("Title contains invalid characters.")
         return sanitized
 
     def validate_rating(self, value):

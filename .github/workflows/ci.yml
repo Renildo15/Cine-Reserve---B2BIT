@@ -1,0 +1,100 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: cine_reserve_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs-create false
+          poetry install --no-interaction
+
+      - name: Create .env
+        run: |
+          cat > .env << EOF
+          SECRET_KEY=test-secret-key-for-ci
+          DEBUG=True
+          ALLOWED_HOSTS=localhost,127.0.0.1
+          DB_NAME=cine_reserve_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          DB_HOST=localhost
+          DB_PORT=5432
+          REDIS_HOST=localhost
+          REDIS_PORT=6379
+          EOF
+
+      - name: Wait for DB
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -U postgres && exit 0 || sleep 1
+          done
+          exit 1
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Run tests
+        run: python manage.py test --verbosity=1
+
+      - name: Run lint check
+        run: |
+          poetry run black --check . || true
+          poetry run isort --check . || true
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/

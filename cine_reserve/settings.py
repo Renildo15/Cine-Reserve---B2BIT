@@ -181,7 +181,7 @@ REDIS_CLIENT = redis.Redis(
     host=config("REDIS_HOST", default="localhost"),
     port=config("REDIS_PORT", default=6379, cast=int),
     db=0,
-    decode_responses=True
+    decode_responses=True,
 )
 
 # Security Settings
@@ -207,6 +207,10 @@ SESSION_COOKIE_SAMESITE = "Lax"
 
 # CORS Settings (if needed)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
-CORS_ALLOWED_ORIGINS = [] if DEBUG else [
-    "http://localhost:3000",
-]
+CORS_ALLOWED_ORIGINS = (
+    []
+    if DEBUG
+    else [
+        "http://localhost:3000",
+    ]
+)

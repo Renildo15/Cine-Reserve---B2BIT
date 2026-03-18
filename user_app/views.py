@@ -38,9 +38,7 @@ class BaseTickersView(generics.ListAPIView):
 
     def base_queryset(self):
         return Ticket.objects.filter(user=self.request.user).select_related(
-            "session__movie",
-            "session__room",
-            "seat"
+            "session__movie", "session__room", "seat"
         )
 
 
@@ -53,7 +51,11 @@ class MyTicketsView(BaseTickersView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return self.base_queryset().filter(session__start_time__gt=now()).order_by("-session__start_time")
+        return (
+            self.base_queryset()
+            .filter(session__start_time__gt=now())
+            .order_by("-session__start_time")
+        )
 
 
 class MyTicketsHistoryView(BaseTickersView):
@@ -65,4 +67,8 @@ class MyTicketsHistoryView(BaseTickersView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return self.base_queryset().filter(session__start_time__lte=now()).order_by("-session__start_time")
+        return (
+            self.base_queryset()
+            .filter(session__start_time__lte=now())
+            .order_by("-session__start_time")
+        )

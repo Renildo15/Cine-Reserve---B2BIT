@@ -44,19 +44,25 @@ class SessionModelTest(TestCase):
 
     def test_session_default_is_available(self):
         start_time = timezone.now() + timedelta(days=1)
-        session = Session.objects.create(movie=self.movie, room=self.room, start_time=start_time)
+        session = Session.objects.create(
+            movie=self.movie, room=self.room, start_time=start_time
+        )
         self.assertFalse(session.is_available)
 
     def test_session_cascade_delete_movie(self):
         start_time = timezone.now() + timedelta(days=1)
-        session = Session.objects.create(movie=self.movie, room=self.room, start_time=start_time)
+        session = Session.objects.create(
+            movie=self.movie, room=self.room, start_time=start_time
+        )
         session_id = session.id
         self.movie.delete()
         self.assertFalse(Session.objects.filter(id=session_id).exists())
 
     def test_session_cascade_delete_room(self):
         start_time = timezone.now() + timedelta(days=1)
-        session = Session.objects.create(movie=self.movie, room=self.room, start_time=start_time)
+        session = Session.objects.create(
+            movie=self.movie, room=self.room, start_time=start_time
+        )
         session_id = session.id
         self.room.delete()
         self.assertFalse(Session.objects.filter(id=session_id).exists())
@@ -83,7 +89,9 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             user=self.user, session=self.session, seat=self.seat, code=uuid.uuid4()
         )
-        self.assertEqual(str(ticket), f"Test Movie - Sala 1 {self.session.start_time} - A1")
+        self.assertEqual(
+            str(ticket), f"Test Movie - Sala 1 {self.session.start_time} - A1"
+        )
         self.assertEqual(ticket.user, self.user)
         self.assertEqual(ticket.session, self.session)
         self.assertEqual(ticket.seat, self.seat)
@@ -128,18 +136,28 @@ class TicketModelTest(TestCase):
 class SessionSerializerTest(TestCase):
     def test_contains_expected_fields(self):
         movie = Movie.objects.create(
-            title="Matrix", description="Test", duration=136, rating="R", is_available=True
+            title="Matrix",
+            description="Test",
+            duration=136,
+            rating="R",
+            is_available=True,
         )
         room = Room.objects.create(name="Sala 1", total_rows=5, seats_per_row=10)
         start_time = timezone.now() + timedelta(days=1)
         session = Session.objects.create(movie=movie, room=room, start_time=start_time)
         serializer = SessionSerializer(session)
         data = serializer.data
-        self.assertEqual(set(data.keys()), {"id", "movie_name", "room_name", "start_time"})
+        self.assertEqual(
+            set(data.keys()), {"id", "movie_name", "room_name", "start_time"}
+        )
 
     def test_movie_name_from_related(self):
         movie = Movie.objects.create(
-            title="Inception", description="Test", duration=148, rating="PG-13", is_available=True
+            title="Inception",
+            description="Test",
+            duration=148,
+            rating="PG-13",
+            is_available=True,
         )
         room = Room.objects.create(name="Sala VIP", total_rows=3, seats_per_row=8)
         start_time = timezone.now() + timedelta(days=1)
@@ -171,7 +189,10 @@ class SeatMapSerializerTest(TestCase):
         self.assertEqual(serializer.data["status"], "reserved")
 
     def test_status_priority_purchased_over_reserved(self):
-        context = {"ticket_seat_ids": {self.seat1.id}, "locked_seat_ids": {self.seat1.id}}
+        context = {
+            "ticket_seat_ids": {self.seat1.id},
+            "locked_seat_ids": {self.seat1.id},
+        }
         serializer = SeatMapSerializer(self.seat1, context=context)
         self.assertEqual(serializer.data["status"], "purchased")
 

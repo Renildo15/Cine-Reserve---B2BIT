@@ -35,8 +35,7 @@ class SeatMapSerializer(serializers.ModelSerializer):
 
 class ReserveSeatSerializer(serializers.Serializer):
     seat_id = serializers.IntegerField(
-        min_value=1,
-        help_text="ID of the seat to reserve"
+        min_value=1, help_text="ID of the seat to reserve"
     )
 
     def validate_seat_id(self, value):
@@ -47,8 +46,7 @@ class ReserveSeatSerializer(serializers.Serializer):
 
 class CheckoutSerializer(serializers.Serializer):
     seat_id = serializers.IntegerField(
-        min_value=1,
-        help_text="ID of the seat to purchase"
+        min_value=1, help_text="ID of the seat to purchase"
     )
 
     def validate_seat_id(self, value):
@@ -65,14 +63,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = [
-            "id",
-            "code",
-            "movie",
-            "start_time",
-            "room",
-            "seat"
-        ]
+        fields = ["id", "code", "movie", "start_time", "room", "seat"]
 
     def get_seat(self, obj):
         return f"F{obj.seat.row}-A{obj.seat.number}"

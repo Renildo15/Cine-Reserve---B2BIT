@@ -33,8 +33,12 @@ class MovieModelTest(TestCase):
 
     def test_movie_ordering(self):
         Movie.objects.all().delete()
-        movie1 = Movie.objects.create(title="First", description="d", duration=60, rating="G")
-        movie2 = Movie.objects.create(title="Second", description="d", duration=60, rating="G")
+        movie1 = Movie.objects.create(
+            title="First", description="d", duration=60, rating="G"
+        )
+        movie2 = Movie.objects.create(
+            title="Second", description="d", duration=60, rating="G"
+        )
         movies = list(Movie.objects.all())
         self.assertEqual(movies[0].title, "Second")
         self.assertEqual(movies[1].title, "First")
@@ -53,7 +57,15 @@ class MovieSerializerTest(TestCase):
         data = serializer.data
         self.assertEqual(
             set(data.keys()),
-            {"id", "title", "description", "duration", "rating", "is_available", "created_at"},
+            {
+                "id",
+                "title",
+                "description",
+                "duration",
+                "rating",
+                "is_available",
+                "created_at",
+            },
         )
 
     def test_serializer_valid_data(self):
@@ -127,10 +139,18 @@ class MoviesListViewTest(APITestCase):
     def test_movies_ordered_by_created_at_desc(self):
         Movie.objects.all().delete()
         movie1 = Movie.objects.create(
-            title="First Movie", description="d", duration=60, rating="G", is_available=True
+            title="First Movie",
+            description="d",
+            duration=60,
+            rating="G",
+            is_available=True,
         )
         movie2 = Movie.objects.create(
-            title="Second Movie", description="d", duration=60, rating="G", is_available=True
+            title="Second Movie",
+            description="d",
+            duration=60,
+            rating="G",
+            is_available=True,
         )
         url = reverse("movies:movie_list")
         response = self.client.get(url)

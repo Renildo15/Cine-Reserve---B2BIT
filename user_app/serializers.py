@@ -32,7 +32,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         sanitized = value.strip().lower()
-        if not re.match(r'^[\w.@+-]+$', sanitized):
+        if not re.match(r"^[\w.@+-]+$", sanitized):
             raise serializers.ValidationError(
                 "Username can only contain letters, numbers, and @/./+/-/_"
             )
@@ -90,7 +90,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         username = attrs.get("username", "")
         if username:
             attrs["username"] = username.lower()
-        
+
         data = super().validate(attrs)
         user_serializer = UserSerializer(self.user).data
         data["user"] = user_serializer
