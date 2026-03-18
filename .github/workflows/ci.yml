@@ -47,14 +47,20 @@ jobs:
             ~/.cache/pypoetry
             ~/.cache/pip
           key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
 
       - name: Install Poetry
         run: pipx install poetry
 
+      - name: Update Poetry lock file
+        run: poetry lock --no-update
+        # This regenerates the lock file without updating dependencies
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create false --local
-          poetry install
+          poetry install --no-interaction
 
       - name: Create .env
         run: |
@@ -74,12 +80,18 @@ jobs:
       - name: Wait for DB
         run: |
           for i in {1..30}; do
-            pg_isready -h localhost -U postgres && exit 0 || sleep 1
+            if pg_isready -h localhost -U postgres; then
+              echo "PostgreSQL is ready"
+              exit 0
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
           done
+          echo "PostgreSQL failed to start"
           exit 1
 
       - name: Run migrations
-        run: poetry run python manage.py migrate
+        run: poetry run python manage.py migrate --noinput
 
       - name: Run tests
-        run: poetry run python manage.py test --verbosity=1
+        run: poetry run python manage.py test --verbosity=2
