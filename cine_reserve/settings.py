@@ -214,3 +214,34 @@ CORS_ALLOWED_ORIGINS = (
         "http://localhost:3000",
     ]
 )
+
+# Celery Configuration
+CELERY_BROKER_URL = f"redis://{config('REDIS_HOST', default='localhost')}:{config('REDIS_PORT', default=6379)}/1"
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    "release-expired-seat-locks": {
+        "task": "session_app.tasks.release_expired_seat_locks",
+        "schedule": 60.0,
+    },
+    "cleanup-old-tickets": {
+        "task": "session_app.tasks.cleanup_old_tickets",
+        "schedule": 86400.0,
+    },
+}
+
+# Email Configuration
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST", default="localhost")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@cinereserve.com")

@@ -14,7 +14,7 @@ from room_app.models import Seat
 
 from .models import Session, Ticket
 from .serializers import *
-from .throttling import LoginRateThrottle, ReserveSeatThrottle
+from .throttling import ReserveSeatThrottle
 
 
 class SessionsListView(generics.ListAPIView):
@@ -163,6 +163,10 @@ class CheckoutView(generics.CreateAPIView):
             )
 
             redis_client.delete(lock_key)
+
+        from .tasks import send_ticket_confirmation
+        if user.email:
+            send_ticket_confirmation.delay(ticket.id, user.email)
 
         return Response(
             {"message": "Ticket purchased successfully", "ticket_id": ticket.id}
