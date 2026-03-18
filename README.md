@@ -206,16 +206,12 @@ DEFAULT_FROM_EMAIL=noreply@cinereserve.com
 |------|-----------|----------|
 | `release_expired_seat_locks` | Libera locks expirados no Redis | A cada 60s |
 | `send_ticket_confirmation` | Envia email de confirmação | Sob demanda |
-| `cleanup_old_tickets` | Remove ingressos de sessões antigas | Daily |
 
 ### Comandos
 
 ```bash
 # Worker (processa tasks)
 celery -A cine_reserve worker -l info
-
-# Beat (scheduler)
-celery -A cine_reserve beat -l info
 ```
 
 ## Rate Limiting
@@ -278,13 +274,7 @@ coverage report
 GitHub Actions executa automaticamente:
 
 1. **Testes** - PostgreSQL + Redis + Django tests
-2. **Lint** - black + isort
 
-### Secrets Necessários (opcional)
-```
-DOCKERHUB_USERNAME
-DOCKERHUB_TOKEN
-```
 
 ## Docker
 
@@ -296,16 +286,12 @@ DOCKERHUB_TOKEN
 | db | 5432 | PostgreSQL |
 | redis | 6379 | Redis |
 | celery_worker | - | Worker Celery |
-| celery_beat | - | Scheduler Celery |
 
 ### Comandos
 
 ```bash
-# Desenvolvimento
+# desenvolvimento
 docker-compose up --build
-
-#后台运行
-docker-compose up -d
 
 # Parar
 docker-compose down
