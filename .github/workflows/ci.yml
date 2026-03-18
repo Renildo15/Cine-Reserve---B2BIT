@@ -53,9 +53,14 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Update Poetry lock file
-        run: poetry lock --no-update
-        # This regenerates the lock file without updating dependencies
+      - name: Check and fix lock file
+        run: |
+          # Try to install with existing lock file
+          if ! poetry check --lock; then
+            echo "Lock file is invalid or outdated. Regenerating..."
+            rm -f poetry.lock
+            poetry lock
+          fi
 
       - name: Install dependencies
         run: |
