@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create false --local
-          poetry install --no-interaction
+          poetry install --no-interaction --no-root
 
       - name: Create .env
         run: |
